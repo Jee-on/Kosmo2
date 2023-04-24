@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="EmpMapper">
+
+	<select id="selectEmp" resultType='empvo'>
+		select empno, ename, job, deptno
+		from emp
+		order by empno asc
+	</select>
+	<select id="countEmp" resultType='int'>
+		select count(*) cnt from emp
+	</select>
+	
+<select id="countEmpPage" parameterType="hashmap" resultType='empvo'>
+<![CDATA[
+SELECT * 
+FROM emp
+WHERE empno IN (
+	SELECT empno
+	FROM  (SELECT rownum rnum, empno
+		FROM (SELECT empno FROM emp ORDER BY empno DESC))
+	WHERE rnum>=${startRow} AND rnum<=${endRow}
+)
+ORDER BY empno DESC
+]]>
+
+
+</select>
+	
+	
+	
+	<!-- 조인인 경우 결과는 hashmap으로 보냄 -->
+	<select id="selectEmpDept" resultType='hashmap'>
+	select e.empno empno,e.ename ename,e.job job,d.dname dname,d.loc loc
+	from emp e inner join dept d
+	on e.deptno=d.deptno
+	</select>
+
+</mapper>

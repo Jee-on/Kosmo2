@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CommentMapper">
+	<!-- resultMap / resultType : 우선은 이것만 이용 -->
+	<select id="selectComment" parameterType="hashmap"  resultType="comment">
+		select *
+		from comment_tab
+		<where>
+			<if test="commentNo !=null">
+				comment_no = #{commentNo}
+			</if>
+			<if test="user_id !=null">
+				user_id LIKE '%${user_id}%'
+			</if>
+			<if test="comment_content !=null">
+				comment_content LIKE '%${comment_content}%'
+			</if>
+		</where>
+	</select>
+	<select id="countComment" resultType='int'>
+		select count(*) cnt from comment_tab
+	</select>
+	
+	<!-- 페이징 방식
+		1. 오라클 -hint
+				  -row_number()
+		2. myBatis : RowBounds()		  
+		3. 다른db  : limit
+		4. 스프링부트 등등 페이징 방식 많음
+				  
+				   -->
+<select id="selectCommentPage" parameterType="hashmap" resultType='Comment'>
+<![CDATA[
+	SELECT *
+	FROM COMMENT_TAB
+	WHERE comment_no IN (
+	SELECT comment_no
+	FROM  (SELECT rownum rnum, comment_no
+	FROM (SELECT comment_no FROM COMMENT_TAB ORDER BY comment_no DESC))
+	WHERE rnum>=${startRow} AND rnum<=${endRow}
+	)
+	ORDER BY comment_no DESC
+]]>
+</select>
+	
+
+<!-- 	<select id="selectCommentByPk" parameterType="hashmap" resultType='comment'>
+		select *
+		from comment_tab
+		where comment_no = #{commentNo}
+	</select> -->
+
+	
+	<!-- Statement : ${} -->
+	<!-- PreparedStatement : #{} -->
+	<insert id="insertComment" parameterType="comment">
+		insert into comment_tab
+		values(#{commentNo},#{userId},#{commentContent},SYSDATE)
+	</insert>
+	
+  	<update id="callList" parameterType="comment">
+		update COMMENT_TAB set
+		COMMENT_CONTENT=#{commentContent}
+		where comment_no=#{commentNo}
+	</update> 
+</mapper>
